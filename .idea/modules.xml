@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/../talktalk/.idea/talktalk.iml" filepath="$PROJECT_DIR$/../talktalk/.idea/talktalk.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/talktalk-backend.iml" filepath="$PROJECT_DIR$/.idea/talktalk-backend.iml" />
     </modules>
   </component>

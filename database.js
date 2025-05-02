@@ -1,4 +1,5 @@
 const db = require('mysql');
+const {auth} = require("mysql/lib/protocol/Auth");
 require('dotenv').config();
 const host = process.env.sql_host;
 const user = process.env.sql_user;
@@ -28,8 +29,8 @@ const userTable = "CREATE TABLE\n" +
     "    avatar VARCHAR ( 200 ) NOT NULL,\n" +
     "    banner VARCHAR ( 200 ) NOT NULL,\n" +
     "    phone VARCHAR ( 20 ) NOT NULL,\n" +
-    "  email VARCHAR ( 20 ) NOT NULL,\n" +
-    "  PRIMARY KEY ( id ));"
+    "    email VARCHAR ( 20 ) NOT NULL,\n" +
+    "    PRIMARY KEY ( id ));"
 const articleTable = "CREATE TABLE\n" +
     "IF\n" +
     "  NOT EXISTS aritcle (\n" +
@@ -37,7 +38,8 @@ const articleTable = "CREATE TABLE\n" +
     "    title VARCHAR ( 30 ) NOT NULL,\n" +
     "    content VARCHAR ( 5000 ) NOT NULL,\n" +
     "    label VARCHAR ( 20 ) NOT NULL,\n" +
-    "  DATE VARCHAR ( 20 ) NOT NULL \n" +
+    "    DATE VARCHAR ( 20 ) NOT NULL,\n" +
+    "    user VARCHAR ( 20 ) NOT NULL\n" +
     "  )"
 const commentTable = ""
 const likeTable = ""
@@ -45,7 +47,6 @@ const followTable = ""
 const messageTable = ""
 /*向表插入数据插入*/
 const userTable_insert = ""
-const articleTable_insert = ""
 const commentTable_insert = ""
 const likeTable_insert = ""
 const followTable_insert = ""
@@ -74,20 +75,28 @@ const messageTable_update = ""
 
 let tables = [userTable, articleTable, commentTable, likeTable, followTable, messageTable];
 for(let i in tables){
-con.query(tables[i],(err,result)=>{
-if(err){
-}
-});
+    con.query(tables[i],(err,result)=>{
+        if(err){
+            console.log(`出错了，原因为：${err}`);
+        }
+    });
 }
 
 con.connect((err)=>{if(err){console.log(`出错了，原因为：${err}`)}});
 /*初始化*/
 con.query(('show tables'),(err,result)=>{
-    if(err){
-        console.log(`出错了，原因为：${err}`);
-    }else{
-        console.log(result);
-    }
+    console.log(result);
 });
 
 module.exports = con;
+
+module.exports.addAritcle=function addArticle(data) {
+    const {title,content,category,time,author} = data;
+    con.query(`insert aritcle(title,content,label,DATE,user) VALUES ('${title}','${content}','${category}','${time}','${author}');`,(err, result) => {
+        if (err) {
+            console.log(`插入文章出错，原因为：${err}`);
+        } else {
+            console.log('文章插入成功:', result);
+        }
+    });
+}
