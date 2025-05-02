@@ -2,7 +2,7 @@ const express = require('express');
 const dataB = require('./database');
 const app = express();
 const port = 1000;
-const cros = require('cors');
+const cros = require('cros');
 
 app.use(cros());
 app.use(express.json());
