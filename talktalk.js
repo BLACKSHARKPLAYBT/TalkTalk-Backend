@@ -3,7 +3,6 @@ const dataB = require('./database');
 const app = express();
 const port = 1000;
 
-
 app.use(express.json());
 // 处理 POST 请求
 app.post('/db', (req, res) => {
