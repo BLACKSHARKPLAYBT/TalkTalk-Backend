@@ -13,7 +13,8 @@ const con = db.createConnection({
     user: user,
     password: password,
     database: database,
-    port: port
+    port: port,
+    connectTimeout: 10000 // 增加连接超时时间为 10 秒
 });
 
 /*初始化建立表*/
