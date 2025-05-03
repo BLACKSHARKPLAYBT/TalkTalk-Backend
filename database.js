@@ -1,66 +1,66 @@
-const db = require('mysql2');
+const mysql = require('mysql2/promise');
 require('dotenv').config();
-const host = process.env.sql_host;
-const user = process.env.sql_user;
-const password = process.env.sql_password;
-const database = process.env.sql_database;
-const port = process.env.sql_port;
 
-console.log(`host:${host},user:${user},password:${password},database:${database},port:${port}`);
-const con = db.createConnection({
-    host: host,
-    user: user,
-    password: password,
-    database: database,
-    port: port,
-    connectTimeout: 10000 // 增加连接超时时间为 10 秒
+const pool = mysql.createPool({
+    host: process.env.sql_host,
+    user: process.env.sql_user,
+    password: process.env.sql_password,
+    database: process.env.sql_database,
+    port: process.env.sql_port,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
 });
 
-// 先连接数据库
-con.connect((err) => {
-    if (err) {
-        console.log(`数据库连接出错，原因为：${err}`);
-        return;
-    }
-    console.log('数据库连接成功');
+// 初始化表
+(async () => {
+    try {
+        const userTable = `CREATE TABLE IF NOT EXISTS USER (
+            id INT(20) NOT NULL AUTO_INCREMENT,
+            NAME VARCHAR(12) NOT NULL,
+            sex VARCHAR(10) NOT NULL,
+            DATE VARCHAR(20) NOT NULL,
+            description VARCHAR(200) NOT NULL,
+            PASSWORD VARCHAR(20) NOT NULL,
+            avatar VARCHAR(200) NOT NULL,
+            banner VARCHAR(200) NOT NULL,
+            phone VARCHAR(20) NOT NULL,
+            email VARCHAR(20) NOT NULL,
+            PRIMARY KEY (id)
+        )`;
 
-    let tables = [userTable, articleTable, commentTable, likeTable, followTable, messageTable];
-    for (let i in tables) {
-        if (tables[i]) {
-            con.query(tables[i], (err, result) => {
-                if (err) {
-                    console.log(`创建表出错，原因为：${err}`);
-                } else {
-                    console.log('表创建成功');
-                }
-            });
+        const articleTable = `CREATE TABLE IF NOT EXISTS article (
+            id INT(20) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+            title VARCHAR(30) NOT NULL,
+            content VARCHAR(5000) NOT NULL,
+            label VARCHAR(20) NOT NULL,
+            DATE VARCHAR(20) NOT NULL,
+            user VARCHAR(20) NOT NULL
+        )`;
+
+        const tables = [userTable, articleTable];
+
+        for (const table of tables) {
+            await pool.execute(table);
         }
+
+        console.log('表初始化完成');
+    } catch (err) {
+        console.log(`表初始化出错，原因为：${err}`);
     }
+})();
 
-    // 初始化查询表
-    con.query('SHOW TABLES', (err, result) => {
-        if (err) {
-            console.log(`查询表出错，原因为：${err}`);
-        } else {
-            console.log(result);
-        }
-    });
-});
-
-module.exports = con;
-
-module.exports.addAritcle = function addArticle(data) {
+module.exports.addAritcle = async function addArticle(data) {
     const { title, content, category, time, author } = data;
-    // 修正表名，使用参数化查询
     const sql = 'INSERT INTO article (title, content, label, DATE, user) VALUES (?, ?, ?, ?, ?)';
     const values = [title, content, category, time, author];
-    con.query(sql, values, (err, result) => {
-        if (err) {
-            console.log(`插入文章出错，原因为：${err}`);
-        } else {
-            console.log('文章插入成功:', result);
-        }
-    });
+
+    try {
+        const [result] = await pool.execute(sql, values);
+        console.log('文章插入成功:', result);
+    } catch (err) {
+        console.log(`插入文章出错，原因为：${err}`);
+    }
 };
 const userTable = "CREATE TABLE\n" +
     "IF\n" +
