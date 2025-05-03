@@ -1,6 +1,7 @@
 const express = require('express');
 const dataB = require('./database');
 const app = express();
+const path = require('path');
 const port = 1000;
 const cors = require('cors');
 
@@ -18,7 +19,7 @@ app.post('/db', (req, res) => {
 
 app.post('/', (req, res) => {
     // 原代码存在多余的 res.，删除后修正为
-    res.send('数据已收到，后端运行正常！😉');
+    res.send('数据已收到，后端运行正常！ 😉');
 });
 
 // 启动服务器
@@ -28,3 +29,9 @@ app.listen(port, () => {
 });
 
 //
+app.use(express.static(path.join(__dirname, 'public')));
+
+// 处理根路径请求
+app.get('/', (req, res) => {
+    res.send('欢迎访问 Talk Talk 后端服务');
+});

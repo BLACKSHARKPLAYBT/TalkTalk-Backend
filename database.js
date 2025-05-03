@@ -1,5 +1,4 @@
 const db = require('mysql2');
-const {auth} = require("mysql/lib/protocol/Auth");
 require('dotenv').config();
 const host = process.env.sql_host;
 const user = process.env.sql_user;
@@ -34,7 +33,6 @@ con.connect((err) => {
                 } else {
                     console.log('表创建成功');
                 }
-                con.end()
             });
         }
     }
@@ -46,7 +44,6 @@ con.connect((err) => {
         } else {
             console.log(result);
         }
-        con.end()
     });
 });
 
@@ -63,7 +60,6 @@ module.exports.addAritcle = function addArticle(data) {
         } else {
             console.log('文章插入成功:', result);
         }
-        con.end()
     });
 };
 const userTable = "CREATE TABLE\n" +
