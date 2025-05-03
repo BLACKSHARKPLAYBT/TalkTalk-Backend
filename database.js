@@ -8,17 +8,21 @@ const database = process.env.sql_database;
 const port = process.env.sql_port;
 
 console.log(`host:${host},user:${user},password:${password},database:${database},port:${port}`);
-const con = db.createConnection({
+
+// 使用连接池
+const pool = db.createPool({
     host: host,
     user: user,
     password: password,
     database: database,
     port: port,
-    connectTimeout: 10000 // 增加连接超时时间为 10 秒
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
 });
 
 // 先连接数据库
-con.connect((err) => {
+pool.getConnection((err, connection) => {
     if (err) {
         console.log(`数据库连接出错，原因为：${err}`);
         return;
@@ -28,7 +32,7 @@ con.connect((err) => {
     let tables = [userTable, articleTable, commentTable, likeTable, followTable, messageTable];
     for (let i in tables) {
         if (tables[i]) {
-            con.query(tables[i], (err, result) => {
+            connection.query(tables[i], (err, result) => {
                 if (err) {
                     console.log(`创建表出错，原因为：${err}`);
                 } else {
@@ -39,23 +43,24 @@ con.connect((err) => {
     }
 
     // 初始化查询表
-    con.query('SHOW TABLES', (err, result) => {
+    connection.query('SHOW TABLES', (err, result) => {
         if (err) {
             console.log(`查询表出错，原因为：${err}`);
         } else {
             console.log(result);
         }
+        connection.release(); // 释放连接
     });
 });
 
-module.exports = con;
+module.exports = pool;
 
 module.exports.addAritcle = function addArticle(data) {
     const { title, content, category, time, author } = data;
     // 修正表名，使用参数化查询
     const sql = 'INSERT INTO article (title, content, label, DATE, user) VALUES (?, ?, ?, ?, ?)';
     const values = [title, content, category, time, author];
-    con.query(sql, values, (err, result) => {
+    pool.query(sql, values, (err, result) => {
         if (err) {
             console.log(`插入文章出错，原因为：${err}`);
         } else {
