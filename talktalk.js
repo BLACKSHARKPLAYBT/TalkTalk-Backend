@@ -7,15 +7,6 @@ const cors = require('cors');
 app.use(cors());
 app.use(express.json());
 
-// 配置静态资源路径
-app.use(express.static(path.join(__dirname, 'public')));
-
-// 根路径处理
-app.get('/', (req, res) => {
-    res.send('欢迎访问 Talk Talk 后端服务');
-});
-
-
 // 处理 POST 请求
 app.post('/db', (req, res) => {
     const data = req.body; // 获取请求体数据

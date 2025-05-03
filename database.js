@@ -1,4 +1,4 @@
-const db = require('mysql2');
+const db = require('mysql');
 const {auth} = require("mysql/lib/protocol/Auth");
 require('dotenv').config();
 const host = process.env.sql_host;
@@ -8,21 +8,17 @@ const database = process.env.sql_database;
 const port = process.env.sql_port;
 
 console.log(`host:${host},user:${user},password:${password},database:${database},port:${port}`);
-
-// 使用连接池
-const pool = db.createPool({
+const con = db.createConnection({
     host: host,
     user: user,
     password: password,
     database: database,
     port: port,
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0
+    connectTimeout: 10000 // 增加连接超时时间为 10 秒
 });
 
 // 先连接数据库
-pool.getConnection((err, connection) => {
+con.connect((err) => {
     if (err) {
         console.log(`数据库连接出错，原因为：${err}`);
         return;
@@ -32,40 +28,42 @@ pool.getConnection((err, connection) => {
     let tables = [userTable, articleTable, commentTable, likeTable, followTable, messageTable];
     for (let i in tables) {
         if (tables[i]) {
-            connection.query(tables[i], (err, result) => {
+            con.query(tables[i], (err, result) => {
                 if (err) {
                     console.log(`创建表出错，原因为：${err}`);
                 } else {
                     console.log('表创建成功');
                 }
+                con.end()
             });
         }
     }
 
     // 初始化查询表
-    connection.query('SHOW TABLES', (err, result) => {
+    con.query('SHOW TABLES', (err, result) => {
         if (err) {
             console.log(`查询表出错，原因为：${err}`);
         } else {
             console.log(result);
         }
-        connection.release(); // 释放连接
+        con.end()
     });
 });
 
-module.exports = pool;
+module.exports = con;
 
 module.exports.addAritcle = function addArticle(data) {
     const { title, content, category, time, author } = data;
     // 修正表名，使用参数化查询
     const sql = 'INSERT INTO article (title, content, label, DATE, user) VALUES (?, ?, ?, ?, ?)';
     const values = [title, content, category, time, author];
-    pool.query(sql, values, (err, result) => {
+    con.query(sql, values, (err, result) => {
         if (err) {
             console.log(`插入文章出错，原因为：${err}`);
         } else {
             console.log('文章插入成功:', result);
         }
+        con.end()
     });
 };
 const userTable = "CREATE TABLE\n" +
