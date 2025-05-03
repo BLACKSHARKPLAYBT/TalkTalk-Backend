@@ -90,13 +90,16 @@ con.query(('show tables'),(err,result)=>{
 
 module.exports = con;
 
-module.exports.addAritcle=function addArticle(data) {
-    const {title,content,category,time,author} = data;
-    con.query(`insert aritcle(title,content,label,DATE,user) VALUES ('${title}','${content}','${category}','${time}','${author}');`,(err, result) => {
+module.exports.addAritcle = function addArticle(data) {
+    const { title, content, category, time, author } = data;
+    // 修正表名，使用参数化查询
+    const sql = 'INSERT INTO article (title, content, label, DATE, user) VALUES (?, ?, ?, ?, ?)';
+    const values = [title, content, category, time, author];
+    con.query(sql, values, (err, result) => {
         if (err) {
             console.log(`插入文章出错，原因为：${err}`);
         } else {
             console.log('文章插入成功:', result);
         }
     });
-}
+};

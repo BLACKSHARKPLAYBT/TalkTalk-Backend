@@ -17,7 +17,7 @@ app.post('/db', (req, res) => {
 
 
 app.post('/', (req, res) => {
-    res.
+    // 原代码存在多余的 res.，删除后修正为
     res.send('数据已收到，后端运行正常！😉');
 });
 
