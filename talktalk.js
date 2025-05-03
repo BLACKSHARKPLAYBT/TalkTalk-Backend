@@ -2,9 +2,9 @@ const express = require('express');
 const dataB = require('./database');
 const app = express();
 const port = 1000;
-const cros = require('cros');
+const cors = require('cors');
 
-app.use(cros());
+app.use(cors());
 app.use(express.json());
 // 处理 POST 请求
 app.post('/db', (req, res) => {
@@ -16,6 +16,7 @@ app.post('/db', (req, res) => {
 
 
 app.post('/', (req, res) => {
+    res.
     res.send('数据已收到，后端运行正常！😉');
 });
 
