@@ -17,7 +17,52 @@ const con = db.createConnection({
     connectTimeout: 10000 // 增加连接超时时间为 10 秒
 });
 
-/*初始化建立表*/
+// 先连接数据库
+con.connect((err) => {
+    if (err) {
+        console.log(`数据库连接出错，原因为：${err}`);
+        return;
+    }
+    console.log('数据库连接成功');
+
+    let tables = [userTable, articleTable, commentTable, likeTable, followTable, messageTable];
+    for (let i in tables) {
+        if (tables[i]) {
+            con.query(tables[i], (err, result) => {
+                if (err) {
+                    console.log(`创建表出错，原因为：${err}`);
+                } else {
+                    console.log('表创建成功');
+                }
+            });
+        }
+    }
+
+    // 初始化查询表
+    con.query('SHOW TABLES', (err, result) => {
+        if (err) {
+            console.log(`查询表出错，原因为：${err}`);
+        } else {
+            console.log(result);
+        }
+    });
+});
+
+module.exports = con;
+
+module.exports.addAritcle = function addArticle(data) {
+    const { title, content, category, time, author } = data;
+    // 修正表名，使用参数化查询
+    const sql = 'INSERT INTO article (title, content, label, DATE, user) VALUES (?, ?, ?, ?, ?)';
+    const values = [title, content, category, time, author];
+    con.query(sql, values, (err, result) => {
+        if (err) {
+            console.log(`插入文章出错，原因为：${err}`);
+        } else {
+            console.log('文章插入成功:', result);
+        }
+    });
+};
 const userTable = "CREATE TABLE\n" +
     "IF\n" +
     "  NOT EXISTS USER (\n" +
@@ -73,34 +118,3 @@ const commentTable_update = ""
 const likeTable_update = ""
 const followTable_update = ""
 const messageTable_update = ""
-
-let tables = [userTable, articleTable, commentTable, likeTable, followTable, messageTable];
-for(let i in tables){
-    con.query(tables[i],(err,result)=>{
-        if(err){
-            console.log(`出错了，原因为：${err}`);
-        }
-    });
-}
-
-con.connect((err)=>{if(err){console.log(`出错了，原因为：${err}`)}});
-/*初始化*/
-con.query(('show tables'),(err,result)=>{
-    console.log(result);
-});
-
-module.exports = con;
-
-module.exports.addAritcle = function addArticle(data) {
-    const { title, content, category, time, author } = data;
-    // 修正表名，使用参数化查询
-    const sql = 'INSERT INTO article (title, content, label, DATE, user) VALUES (?, ?, ?, ?, ?)';
-    const values = [title, content, category, time, author];
-    con.query(sql, values, (err, result) => {
-        if (err) {
-            console.log(`插入文章出错，原因为：${err}`);
-        } else {
-            console.log('文章插入成功:', result);
-        }
-    });
-};
