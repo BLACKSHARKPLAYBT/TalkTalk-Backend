@@ -8,8 +8,8 @@
 ],
     "routes": [
     {
-        "src": "/(.*)",
-        "dest": "/talktalk.js"
+        "src": "(.*)",
+        "dest": "talktalk.js"
     }
 ]
 }
