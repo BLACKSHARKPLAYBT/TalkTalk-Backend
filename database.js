@@ -1,4 +1,10 @@
 const mysql = require('mysql2/promise');
+// 确保.env文件包含以下环境变量（需要用户确认）
+// sql_host=localhost
+// sql_user=root
+// sql_password=your_password
+// sql_database=talktalk
+// sql_port=3306
 require('dotenv').config();
 
 const pool = mysql.createPool({
@@ -29,6 +35,7 @@ const pool = mysql.createPool({
             PRIMARY KEY (id)
         )`;
 
+        // 原错误表名 'aritcle' 需要修正为 'article'
         const articleTable = `CREATE TABLE IF NOT EXISTS article (
             id INT(20) NOT NULL PRIMARY KEY AUTO_INCREMENT,
             title VARCHAR(30) NOT NULL,
@@ -117,3 +124,13 @@ const commentTable_update = ""
 const likeTable_update = ""
 const followTable_update = ""
 const messageTable_update = ""
+
+// 在连接池创建后添加验证
+pool.getConnection()
+    .then(conn => {
+        console.log('成功连接到数据库');
+        conn.release();
+    })
+    .catch(err => {
+        console.error('数据库连接失败:', err);
+    });
