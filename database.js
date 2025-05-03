@@ -1,4 +1,4 @@
-const db = require('mysql');
+const db = require('mysql2');
 const {auth} = require("mysql/lib/protocol/Auth");
 require('dotenv').config();
 const host = process.env.sql_host;
