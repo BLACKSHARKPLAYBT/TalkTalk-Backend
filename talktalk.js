@@ -18,6 +18,14 @@ app.post('/db', (req, res) => {
     dataB.addAritcle(data);
     res.json({ message: '数据库路由收到数据！', received: data });
 });
+app.post('/register', (req, res) => {
+    const data = req.body;
+    console.log('收到数据:');
+    dataB.addUser(data);
+    res.json({ message: '数据库路由收到数据！', received: data });
+    console.log(`${data}`)
+});
+
 
 app.post('/', (req, res) => {
     res.send('数据已收到，后端运行正常！ 😉');

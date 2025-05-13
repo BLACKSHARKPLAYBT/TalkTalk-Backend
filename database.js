@@ -25,7 +25,7 @@ const pool = mysql.createPool({
             id INT(20) NOT NULL AUTO_INCREMENT,
             NAME VARCHAR(12) NOT NULL,
             sex VARCHAR(10) NOT NULL,
-            DATE VARCHAR(20) NOT NULL,
+            DATE VARCHAR(30) NOT NULL,
             description VARCHAR(200) NOT NULL,
             PASSWORD VARCHAR(20) NOT NULL,
             avatar VARCHAR(200) NOT NULL,
@@ -69,6 +69,20 @@ module.exports.addAritcle = async function addArticle(data) {
         console.log(`插入文章出错，原因为：${err}`);
     }
 };
+
+module.exports.addUser = async function addUser(data) {
+    const {name,date,password,sex,description,avatar,banner,phone,email} = data;
+    const sql = 'INSERT INTO USER (NAME,DATE,PASSWORD,sex,description,avatar,banner,phone,email) VALUES (?, ?, ?,?,?,?,?,?,?)';
+    const values = [name,date,password,sex,description,avatar,banner,phone,email];
+    try {
+        const [result] = await pool.execute(sql, values);
+        console.log('用户插入成功:', result);
+    }
+    catch (err) {
+        console.log(`插入用户出错，原因为：${err}`);
+    }
+}
+
 const userTable = "CREATE TABLE\n" +
     "IF\n" +
     "  NOT EXISTS USER (\n" +
