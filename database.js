@@ -15,46 +15,69 @@ const pool = mysql.createPool({
     port: process.env.sql_port,
     waitForConnections: true,
     connectionLimit: 10,
-    queueLimit: 0
+    queueLimit: 0,
+    // 添加以下配置
+    connectTimeout: 60000, // 连接超时时间（毫秒）
+    acquireTimeout: 60000, // 获取连接超时时间（毫秒）
+    timeout: 60000, // 查询超时时间（毫秒）
+    enableKeepAlive: true, // 启用保持连接
+    keepAliveInitialDelay: 0 // 保持连接的初始延迟
 });
 
 // 初始化表
 (async () => {
-    try {
-        const userTable = `CREATE TABLE IF NOT EXISTS user (
-            id INT(20) NOT NULL AUTO_INCREMENT,
-            NAME VARCHAR(12) NOT NULL,
-            sex VARCHAR(10) NOT NULL,
-            DATE VARCHAR(30) NOT NULL,
-            description VARCHAR(200) NOT NULL,
-            PASSWORD VARCHAR(20) NOT NULL,
-            avatar VARCHAR(200) NOT NULL,
-            banner VARCHAR(200) NOT NULL,
-            phone VARCHAR(20) NOT NULL,
-            email VARCHAR(20) NOT NULL,
-            PRIMARY KEY (id)
-        )`;
-
-        // 原错误表名 'aritcle' 需要修正为 'article'
-        const articleTable = `CREATE TABLE IF NOT EXISTS article (
-            id INT(20) NOT NULL PRIMARY KEY AUTO_INCREMENT,
-            title VARCHAR(30) NOT NULL,
-            content VARCHAR(5000) NOT NULL,
-            label VARCHAR(20) NOT NULL,
-            DATE VARCHAR(20) NOT NULL,
-            user VARCHAR(20) NOT NULL
-        )`;
-
-        const tables = [userTable, articleTable];
-
-        for (const table of tables) {
-            await pool.execute(table);
+    const maxRetries = 3;
+    let retryCount = 0;
+    
+    const initTables = async () => {
+        try {
+            const userTable = `CREATE TABLE IF NOT EXISTS user (
+                id INT(20) NOT NULL AUTO_INCREMENT,
+                NAME VARCHAR(12) NOT NULL,
+                sex VARCHAR(10) NOT NULL,
+                DATE VARCHAR(30) NOT NULL,
+                description VARCHAR(200) NOT NULL,
+                PASSWORD VARCHAR(20) NOT NULL,
+                avatar VARCHAR(200) NOT NULL,
+                banner VARCHAR(200) NOT NULL,
+                phone VARCHAR(20) NOT NULL,
+                email VARCHAR(20) NOT NULL,
+                PRIMARY KEY (id)
+            )`;
+    
+            // 原错误表名 'aritcle' 需要修正为 'article'
+            const articleTable = `CREATE TABLE IF NOT EXISTS article (
+                id INT(20) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+                title VARCHAR(30) NOT NULL,
+                content VARCHAR(5000) NOT NULL,
+                label VARCHAR(20) NOT NULL,
+                DATE VARCHAR(20) NOT NULL,
+                user VARCHAR(20) NOT NULL
+            )`;
+    
+            const tables = [userTable, articleTable];
+    
+            for (const table of tables) {
+                await pool.execute(table);
+            }
+    
+            console.log('表初始化完成');
+        } catch (err) {
+            console.log(`表初始化出错，原因为：${err}`);
+            if (retryCount < maxRetries) {
+                retryCount++;
+                console.log(`尝试第 ${retryCount} 次重新初始化表...`);
+                // 等待3秒后重试
+                await new Promise(resolve => setTimeout(resolve, 3000));
+                return initTables();
+            } else {
+                console.error('表初始化失败，已达到最大重试次数');
+                throw err;
+            }
         }
+    };
 
-        console.log('表初始化完成');
-    } catch (err) {
-        console.log(`表初始化出错，原因为：${err}`);
-    }
+    await initTables();
 })();
 
 module.exports.addAritcle = async function addArticle(data) {
