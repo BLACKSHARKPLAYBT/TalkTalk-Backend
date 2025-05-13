@@ -95,7 +95,7 @@ module.exports.addAritcle = async function addArticle(data) {
 
 module.exports.addUser = async function addUser(data) {
     const {name,date,password,sex,description,avatar,banner,phone,email} = data;
-    const sql = 'INSERT INTO USER (NAME,DATE,PASSWORD,sex,description,avatar,banner,phone,email) VALUES (?, ?, ?,?,?,?,?,?,?)';
+    const sql = 'INSERT INTO user (NAME,DATE,PASSWORD,sex,description,avatar,banner,phone,email) VALUES (?, ?, ?,?,?,?,?,?,?)';
     const values = [name,date,password,sex,description,avatar,banner,phone,email];
     try {
         const [result] = await pool.execute(sql, values);
