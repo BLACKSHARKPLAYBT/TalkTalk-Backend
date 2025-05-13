@@ -21,7 +21,7 @@ const pool = mysql.createPool({
 // 初始化表
 (async () => {
     try {
-        const userTable = `CREATE TABLE IF NOT EXISTS USER (
+        const userTable = `CREATE TABLE IF NOT EXISTS user (
             id INT(20) NOT NULL AUTO_INCREMENT,
             NAME VARCHAR(12) NOT NULL,
             sex VARCHAR(10) NOT NULL,
@@ -85,7 +85,7 @@ module.exports.addUser = async function addUser(data) {
 
 const userTable = "CREATE TABLE\n" +
     "IF\n" +
-    "  NOT EXISTS USER (\n" +
+    "  NOT EXISTS user (\n" +
     "    id INT ( 20 ) NOT NULL auto_increment,\n" +
     "    NAME VARCHAR ( 12 ) NOT NULL,\n" +
     "    sex VARCHAR ( 10 ) NOT NULL,\n" +
