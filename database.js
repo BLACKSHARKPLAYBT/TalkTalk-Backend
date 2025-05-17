@@ -1,10 +1,4 @@
 const mysql = require('mysql2/promise');
-// 确保.env文件包含以下环境变量（需要用户确认）
-// sql_host=localhost
-// sql_user=root
-// sql_password=your_password
-// sql_database=talktalk
-// sql_port=3306
 require('dotenv').config();
 
 const pool = mysql.createPool({
@@ -18,10 +12,6 @@ const pool = mysql.createPool({
     queueLimit: 0,
     // 添加以下配置
     connectTimeout: 60000, // 连接超时时间（毫秒）
-    acquireTimeout: 60000, // 获取连接超时时间（毫秒）
-    timeout: 60000, // 查询超时时间（毫秒）
-    enableKeepAlive: true, // 启用保持连接
-    keepAliveInitialDelay: 0 // 保持连接的初始延迟
 });
 
 // 初始化表
@@ -79,7 +69,7 @@ const pool = mysql.createPool({
 
     await initTables();
 })();
-
+//插入功能
 module.exports.addAritcle = async function addArticle(data) {
     const { title, content, category, time, author } = data;
     const sql = 'INSERT INTO article (title, content, label, DATE, user) VALUES (?, ?, ?, ?, ?)';
@@ -94,80 +84,102 @@ module.exports.addAritcle = async function addArticle(data) {
 };
 
 module.exports.addUser = async function addUser(data) {
-    const {name,date,password,sex,description,avatar,banner,phone,email} = data;
-    const sql = 'INSERT INTO user (NAME,DATE,PASSWORD,sex,description,avatar,banner,phone,email) VALUES (?, ?, ?,?,?,?,?,?,?)';
-    const values = [name,date,password,sex,description,avatar,banner,phone,email];
+    const {name, date, password, sex, description, avatar, banner, phone, email} = data;
+
     try {
-        const [result] = await pool.execute(sql, values);
-        console.log('用户插入成功:', result);
+        const checkUserSql = `SELECT * FROM user WHERE NAME = ?`;
+        const [existingUsers] = await pool.execute(checkUserSql, [name]);
+
+        if (existingUsers.length > 0) {
+            console.log('用户已存在');
+            return {
+                status:409,
+                success: false,
+                message: '用户已存在',
+            };
+        }
+
+        const insertUserSql = 'INSERT INTO user (NAME, DATE, PASSWORD, sex, description, avatar, banner, phone, email) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
+        const values = [name, date, password, sex, description, avatar, banner, phone, email];
+        const [insertResult] = await pool.execute(insertUserSql, values);
+        
+        console.log('用户插入成功:', insertResult);
+        return { // 插入成功后返回统一格式的对象
+            success: true,
+            message: '用户注册成功',
+            userId: insertResult.insertId 
+        };
+
+    } catch (err) {
+        console.log(`处理用户注册出错，原因为：${err}`);
+        return { // 发生错误时返回统一格式的对象
+            success: false,
+            message: '用户注册失败：' + err.message 
+        }
     }
-    catch (err) {
-        console.log(`插入用户出错，原因为：${err}`);
+}
+//获取表内容
+module.exports.userSelect = async function userSelect(data){
+    const {username, password} = data;
+    const us = `select * from user where NAME='${username}'`
+    const us_rs = await pool.execute(us);
+    try {
+        if (us_rs[0].length === 0) {
+            return ({
+                status: 401,
+                success: false
+            })
+        } else if (us_rs[0].length === 2) {
+            return ({
+                status: 401,
+                success:false
+            })
+        } else {
+            const sql = `select * from user where NAME='${username}' and PASSWORD='${password}'`
+            const sql_db = await pool.execute(sql);
+            console.log(sql_db.length)
+            if (sql_db.length === 0) {
+                return ({
+                    status: 401,
+                    success: false,
+                    message: '密码错误'
+                })
+            } else if (sql_db.length === 2) {
+                return ({
+                    status: 200,
+                    success: true,
+                    message: '登录成功',
+                })
+            }
+        }
+    } catch (err) {
+        console.log(`查询出错，原因为：${err}`);
     }
 }
 
-const userTable = "CREATE TABLE\n" +
-    "IF\n" +
-    "  NOT EXISTS user (\n" +
-    "    id INT ( 20 ) NOT NULL auto_increment,\n" +
-    "    NAME VARCHAR ( 12 ) NOT NULL,\n" +
-    "    sex VARCHAR ( 10 ) NOT NULL,\n" +
-    "    DATE VARCHAR ( 20 ) NOT NULL,\n" +
-    "    description VARCHAR ( 200 ) NOT NULL,\n" +
-    "    PASSWORD VARCHAR ( 20 ) NOT NULL,\n" +
-    "    avatar VARCHAR ( 200 ) NOT NULL,\n" +
-    "    banner VARCHAR ( 200 ) NOT NULL,\n" +
-    "    phone VARCHAR ( 20 ) NOT NULL,\n" +
-    "    email VARCHAR ( 20 ) NOT NULL,\n" +
-    "    PRIMARY KEY ( id ));"
-const articleTable = "CREATE TABLE\n" +
-    "IF\n" +
-    "  NOT EXISTS aritcle (\n" +
-    "    id INT ( 20 ) NOT NULL PRIMARY KEY auto_increment,\n" +
-    "    title VARCHAR ( 30 ) NOT NULL,\n" +
-    "    content VARCHAR ( 5000 ) NOT NULL,\n" +
-    "    label VARCHAR ( 20 ) NOT NULL,\n" +
-    "    DATE VARCHAR ( 20 ) NOT NULL,\n" +
-    "    user VARCHAR ( 20 ) NOT NULL\n" +
-    "  )"
-const commentTable = ""
-const likeTable = ""
-const followTable = ""
-const messageTable = ""
-/*向表插入数据插入*/
-const userTable_insert = ""
-const commentTable_insert = ""
-const likeTable_insert = ""
-const followTable_insert = ""
-const messageTable_insert = ""
-/*查询表数据*/
-const userTable_select = ""
-const articleTable_select = ""
-const commentTable_select = ""
-const likeTable_select = ""
-const followTable_select = ""
-const messageTable_select = ""
-/*删除表数据*/
-const userTable_delete = ""
-const articleTable_delete = ""
-const commentTable_delete = ""
-const likeTable_delete = ""
-const followTable_delete = ""
-const messageTable_delete = ""
-/*修改表数据*/
-const userTable_update = ""
-const articleTable_update = ""
-const commentTable_update = ""
-const likeTable_update = ""
-const followTable_update = ""
-const messageTable_update = ""
+
+module.exports.getArticle = async function getArticle(){
+    const sql = `select * from article`
+    try {
+        const [data] = await pool.execute(sql);
+        console.log('查询到的文章数据:', data);  // 添加日志
+        if (!data || data.length === 0) {
+            console.log('文章表为空');
+            return [];
+        }
+        return data;
+    }
+    catch (err) {
+        console.log(`获取文章出错，原因为：${err}`);
+        throw err;  // 抛出错误以便上层捕获
+    }
+}
 
 // 在连接池创建后添加验证
 pool.getConnection()
     .then(conn => {
         console.log('成功连接到数据库');
-        conn.release();
-    })
+        conn.release()})
     .catch(err => {
         console.error('数据库连接失败:', err);
     });
