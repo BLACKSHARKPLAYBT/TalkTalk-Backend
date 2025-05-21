@@ -37,6 +37,12 @@ app.get('/getArticle', async (req, res) => {
         res.json(articles);
 });
 
+app.get('/getClassify', async (req, res) => {
+ console.log('收到获取分类请求');
+ const classify = await dataB.getClassify();
+ res.json(classify);
+})
+
 app.post('/', (req, res) => {
     res.send('数据已收到，后端运行正常！ 😉');
 })

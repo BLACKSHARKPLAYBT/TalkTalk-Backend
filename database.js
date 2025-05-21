@@ -136,15 +136,15 @@ module.exports.userSelect = async function userSelect(data){
             })
         } else {
             const sql = `select * from user where NAME='${username}' and PASSWORD='${password}'`
-            const sql_db = await pool.execute(sql);
-            console.log(sql_db.length)
-            if (sql_db.length === 0) {
+            const sql_db = await pool.execute(sql)
+            const ck = sql_db[0][0]
+            if (ck === undefined   ) {
                 return ({
                     status: 401,
                     success: false,
                     message: '密码错误'
                 })
-            } else if (sql_db.length === 2) {
+            } else{
                 return ({
                     status: 200,
                     success: true,
@@ -172,6 +172,16 @@ module.exports.getArticle = async function getArticle(){
     catch (err) {
         console.log(`获取文章出错，原因为：${err}`);
         throw err;  // 抛出错误以便上层捕获
+    }
+}
+
+module.exports.getClassify = async function getClassify(){
+    const sql = `select DISTINCT label from article`
+    let res = await pool.execute(sql)
+    return {
+        status: 200,
+        success: true,
+        data: res[0]
     }
 }
 
