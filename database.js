@@ -138,6 +138,10 @@ module.exports.userSelect = async function userSelect(data){
             const sql = `select * from user where NAME='${username}' and PASSWORD='${password}'`
             const sql_db = await pool.execute(sql)
             const ck = sql_db[0][0]
+            const sql2 = `select * from user where NAME='${username}'`
+            const sql_db2 = await pool.execute(sql2)
+            const ck2 = sql_db2[0][0]
+
             if (ck === undefined   ) {
                 return ({
                     status: 401,
@@ -149,6 +153,7 @@ module.exports.userSelect = async function userSelect(data){
                     status: 200,
                     success: true,
                     message: '登录成功',
+                    data: ck2
                 })
             }
         }
