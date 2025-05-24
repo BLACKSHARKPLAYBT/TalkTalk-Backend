@@ -190,6 +190,17 @@ module.exports.getClassify = async function getClassify(){
     }
 }
 
+module.exports.getContent = async function getContent(data){
+    let id = data.id
+    const sql = `select * from article where id = ${id}`
+    let res = await pool.execute(sql)
+    return {
+        status: 200,
+        success: true,
+        data: res[0]
+    }
+}
+
 // 在连接池创建后添加验证
 pool.getConnection()
     .then(conn => {
