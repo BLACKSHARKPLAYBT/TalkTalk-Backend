@@ -31,9 +31,10 @@ app.post('/login', async (req, res) => {
     res.json(result)
 })
 
-app.get('/getArticle', async (req, res) => {
+app.post('/getArticle', async (req, res) => {
         console.log('收到获取文章请求');
-        const articles = await dataB.getArticle();
+        let data = req.body;
+        const articles = await dataB.getArticle(data);
         res.json(articles);
 });
 
@@ -50,6 +51,27 @@ app.post('/getContent',async (req, res) => {
     res.json(content);
 })
 
+app.post('/getUserContent',async (req, res) => {
+    console.log('收到获取用户内容请求');
+    let data = req.body;
+    const content = await dataB.getUserContent(data);
+    res.json(content);
+})
+
+app.post('/getTagArticle',async (req, res) => {
+    console.log('收到获取标签文章请求');
+    let data = req.body;
+    const content = await dataB.getTagArticle(data);
+    res.json(content);
+})
+
+
+app.post('/admin',async (req, res) => {
+    console.log('收到获取用户请求');
+    let data = req.body;
+    const content = await dataB.admin(data);
+    res.json(content);
+})
 app.post('/', (req, res) => {
     res.send('数据已收到，后端运行正常！ 😉');
 })

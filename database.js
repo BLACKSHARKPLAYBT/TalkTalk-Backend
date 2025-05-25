@@ -42,10 +42,17 @@ const pool = mysql.createPool({
                 content VARCHAR(5000) NOT NULL,
                 label VARCHAR(20) NOT NULL,
                 DATE VARCHAR(20) NOT NULL,
-                user VARCHAR(20) NOT NULL
+                user VARCHAR(20) NOT NULL,
+                cover varchar(200) NOT NULL
             )`;
+
+            const adminTable = `CREATE TABLE IF NOT EXISTS admin (
+                id INT(20) NOT NULL PRIMARY KEY AUTO_INCREMENT, 
+                level INT(2) NOT NULL,
+                CONSTRAINT fv_admin FOREIGN KEY (level) REFERENCES user(id)
+    )`;
     
-            const tables = [userTable, articleTable];
+            const tables = [userTable, articleTable, adminTable];
     
             for (const table of tables) {
                 await pool.execute(table);
@@ -162,12 +169,16 @@ module.exports.userSelect = async function userSelect(data){
     }
 }
 
-
-module.exports.getArticle = async function getArticle(){
-    const sql = `select * from article`
+module.exports.getArticle = async function getArticle(data){
+    let current = data.current
+    let pageSize = data.pageSize
+    if(current!==1){
+        current = (current-1)*pageSize
+    }
+    const sql = `select * from article limit ${current},${pageSize}`
     try {
         const [data] = await pool.execute(sql);
-        console.log('查询到的文章数据:', data);  // 添加日志
+        console.log('查询到文章数据');  // 添加日志
         if (!data || data.length === 0) {
             console.log('文章表为空');
             return [];
@@ -200,6 +211,60 @@ module.exports.getContent = async function getContent(data){
         data: res[0]
     }
 }
+
+module.exports.getUserContent = async function getUserContent(data){
+    let user = data.user;
+    const sql = `select * from article where user = '${user}'`
+    let res = await pool.execute(sql)
+    return {
+        status: 200,
+        success: true,
+        data: res[0]
+    }
+}
+
+module.exports.getTagArticle = async function getTagArticle(data){
+    let tag = data.tag
+    const sql = `select * from article where label = '${tag}'`
+    let res = await pool.execute(sql)
+    return {
+        status: 200,
+        success: true,
+        data: res[0]
+    }
+}
+
+module.exports.admin = async  function admin(data){
+    let id = data.id
+    try {
+        const sql = `select * from admin where id = ${id}`
+        let db = await pool.execute(sql);
+        let dbb = await db[0]
+        let result = await dbb[0]
+        console.log(result)
+        if (result === undefined) {
+            return {
+                status: 401,
+                success: false,
+                message: '账号不存在'
+            }
+        } else {
+            return {
+                status: 200,
+                success: true,
+                message: '登录成功',
+            }
+        }
+    }catch (error){
+        console.log(error)
+        return {
+            status: 401,
+            success: false,
+            message: '账号不存在'
+        }
+    }
+}
+
 
 // 在连接池创建后添加验证
 pool.getConnection()
